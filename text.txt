@@ -1,0 +1,119 @@
+let player;
+let fallingItem;
+let score = 0;
+let touchXStart = null;
+
+function setup() {
+  createCanvas(400, 600);
+  player = new Player();
+  fallingItem = new FallingItem();
+}
+
+function draw() {
+  background(0); // Black background
+  player.move();
+  player.display();
+  
+  fallingItem.fall();
+  fallingItem.display();
+  
+  // Check for collision
+  if (fallingItem.hits(player)) {
+    score++;
+    fallingItem.reset();
+  }
+  
+  // Display score
+  fill(255);
+  textSize(24);
+  text("Score: " + score, 10, 30);
+}
+
+class Player {
+  constructor() {
+    this.width = 50;
+    this.height = 50;
+    this.x = width / 2 - this.width / 2;
+    this.y = height - this.height - 10;
+    this.speed = 5;
+  }
+  
+  move() {
+    if (keyIsDown(LEFT_ARROW) && this.x > 0) {
+      this.x -= this.speed;
+    }
+    if (keyIsDown(RIGHT_ARROW) && this.x < width - this.width) {
+      this.x += this.speed;
+    }
+  }
+  
+  moveLeft() {
+    if (this.x > 0) {
+      this.x -= this.speed * 4; // Faster movement for touch
+    }
+  }
+
+  moveRight() {
+    if (this.x < width - this.width) {
+      this.x += this.speed * 4;
+    }
+  }
+  
+  display() {
+    fill(255, 255, 0); // Yellow
+    rect(this.x, this.y, this.width, this.height);
+  }
+}
+
+class FallingItem {
+  constructor() {
+    this.width = 30;
+    this.height = 30;
+    this.reset();
+  }
+  
+  fall() {
+    this.y += 3; // Falling speed
+    if (this.y > height) {
+      this.reset();
+    }
+  }
+  
+  reset() {
+    this.x = random(0, width - this.width);
+    this.y = -this.height;
+  }
+  
+  display() {
+    fill(255, 255, 0); // Yellow
+    rect(this.x, this.y, this.width, this.height);
+  }
+  
+  hits(player) {
+    return (
+      this.y + this.height > player.y &&
+      this.x + this.width > player.x &&
+      this.x < player.x + player.width
+    );
+  }
+}
+
+// Touch controls for iPad
+function touchStarted() {
+  touchXStart = touches[0].x;
+}
+
+function touchMoved() {
+  if (touchXStart !== null) {
+    let touchXEnd = touches[0].x;
+    if (touchXEnd < touchXStart - 20) {
+      player.moveLeft(); // Swipe left
+    } else if (touchXEnd > touchXStart + 20) {
+      player.moveRight(); // Swipe right
+    }
+  }
+}
+
+function touchEnded() {
+  touchXStart = null;
+}
